@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nielopekk - portfolio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #07070a;
+            --bg-secondary: #0f1725;
+            --text-primary: #e6eef6;
+            --text-secondary: rgba(230, 238, 246, 0.9);
+            --card-bg: rgba(255,255,255,0.03);
+            --card-border: rgba(255,255,255,0.3);
+            --accent: rgba(14,165,200,0.08);
+            --hover-bg: rgba(255,255,255,0.3);
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #f0f4f8;
+            --bg-secondary: #ffffff;
+            --text-primary: #1a202c;
+            --text-secondary: #2d3748;
+            --card-bg: rgba(255,255,255,0.9);
+            --card-border: rgba(0,0,0,0.1);
+            --accent: rgba(14,165,200,0.15);
+            --hover-bg: rgba(14,165,200,0.2);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 55%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* THEME TOGGLE */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            border: 2px solid var(--card-border);
+            border-radius: 50px;
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.2em;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.05);
+            background: var(--hover-bg);
+        }
+
+        /* SNAKE GAME */
+        .snake-game-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .snake-game-container.active {
+            display: flex;
+        }
+
+        #snakeCanvas {
+            border: 3px solid var(--card-border);
+            background: var(--bg-secondary);
+            border-radius: 10px;
+        }
+
+        .snake-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .snake-score {
+            font-size: 1.5em;
+            color: var(--text-primary);
+        }
+
+        .close-game {
+            background: rgba(255,50,50,0.8);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .close-game:hover {
+            background: rgba(255,50,50,1);
+            transform: scale(1.05);
+        }
+
+        .play-snake-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            z-index: 999;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .play-snake-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+
+        /* HEADER */
+        header {
+            text-align: center;
+            padding: 100px 20px 60px;
+            animation: fadeIn 1s ease-in;
+            position: relative;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+        }
+
+        .logo {
+            font-size: 3.5em;
+            animation: float 3s ease-in-out infinite;
+            display: inline-block;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
+        }
+
+        h1 {
+            font-size: 4em;
+            margin-bottom: 15px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.4);
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            font-size: 1.6em;
+            opacity: 0.95;
+            margin-bottom: 20px;
+            font-weight: 300;
+            color: var(--text-secondary);
+        }
+
+        .tagline {
+            font-size: 1.2em;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 20px auto;
+            color: var(--text-secondary);
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+
+        .social-links a {
+            color: var(--text-primary);
+            text-decoration: none;
+            padding: 12px 22px;
+            background: var(--accent);
+            border-radius: 12px;
+            transition: all 0.23s ease;
+            backdrop-filter: blur(6px);
+            border: 1px solid var(--card-border);
+            font-weight: 600;
+        }
+
+        .social-links a:hover {
+            background: var(--hover-bg);
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+        }
+
+        /* STATS SECTION */
+        .stats-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 25px;
+            margin: 50px 0;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            padding: 35px 20px;
+            border-radius: 20px;
+            text-align: center;
+            border: 2px solid var(--card-border);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-10px);
+            background: var(--hover-bg);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+
+        .stat-number {
+            font-size: 3.2em;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .stat-label {
+            font-size: 1.1em;
+            opacity: 0.95;
+            color: var(--text-secondary);
+        }
+
+        /* SECTION */
+        .section {
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            border-radius: 25px;
+            padding: 50px;
+            margin: 40px 0;
+            animation: slideUp 0.8s ease-out;
+            border: 2px solid var(--card-border);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            font-size: 3em;
+            margin-bottom: 35px;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        /* PROJECTS */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .project-card {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 20px;
+            transition: all 0.4s ease;
+            cursor: pointer;
+            border: 2px solid var(--card-border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .project-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, var(--hover-bg), transparent);
+            transition: left 0.5s;
+        }
+
+        .project-card:hover::before {
+            left: 100%;
+        }
+
+        .project-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            background: var(--hover-bg);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .project-icon {
+            font-size: 4em;
+        }
+
+        .project-badge {
+            background: var(--accent);
+            padding: 8px 15px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .project-card h3 {
+            font-size: 1.8em;
+            margin-bottom: 15px;
+        }
+
+        .project-card p {
+            color: var(--text-secondary);
+        }
+
+        .project-stats {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .project-stat {
+            background: var(--hover-bg);
+            padding: 8px 15px;
+            border-radius: 10px;
+            font-size: 0.9em;
+        }
+
+        .project-link {
+            display: inline-block;
+            padding: 12px 30px;
+            background: var(--hover-bg);
+            border-radius: 25px;
+            text-decoration: none;
+            color: var(--text-primary);
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+        }
+
+        .project-link:hover {
+            background: var(--accent);
+            transform: scale(1.05);
+        }
+
+        /* SKILLS VISUALIZATION */
+        .skills-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-top: 40px;
+        }
+
+        .skill-card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            border: 2px solid var(--card-border);
+        }
+
+        .skill-card:hover {
+            transform: translateY(-5px);
+            background: var(--hover-bg);
+        }
+
+        .skill-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .skill-icon {
+            font-size: 3em;
+        }
+
+        .skill-card h3 {
+            font-size: 1.5em;
+        }
+
+        .skill-bar-container {
+            margin: 15px 0;
+        }
+
+        .skill-name {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 1.05em;
+            color: var(--text-secondary);
+        }
+
+        .skill-bar {
+            height: 12px;
+            background: var(--card-border);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .skill-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            transition: width 1s ease;
+            width: 0;
+        }
+
+        .skill-progress.animated {
+            /* Width will be set by JS */
+        }
+
+        /* TESTIMONIALS */
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 40px;
+        }
+
+        .testimonial-card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 20px;
+            border: 2px solid var(--card-border);
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .testimonial-card:hover {
+            transform: translateY(-5px);
+            background: var(--hover-bg);
+        }
+
+        .quote-icon {
+            font-size: 3em;
+            opacity: 0.3;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+
+        .testimonial-text {
+            font-size: 1.1em;
+            font-style: italic;
+            margin: 40px 0 20px;
+            line-height: 1.8;
+            color: var(--text-secondary);
+        }
+
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .author-avatar {
+            font-size: 2.5em;
+        }
+
+        .author-info {
+            flex: 1;
+        }
+
+        .author-name {
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        .author-role {
+            opacity: 0.9;
+            font-size: 0.95em;
+            color: var(--text-secondary);
+        }
+
+        /* CTA */
+        .cta-section {
+            text-align: center;
+            padding: 60px 40px;
+            background: var(--accent);
+            border-radius: 25px;
+            margin: 50px 0;
+            border: 2px solid var(--card-border);
+        }
+
+        .cta-title {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .cta-button {
+            padding: 18px 40px;
+            background: var(--hover-bg);
+            border: none;
+            border-radius: 30px;
+            color: var(--text-primary);
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .cta-button:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        /* CONTACT */
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-top: 40px;
+        }
+
+        .contact-card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            border: 2px solid var(--card-border);
+            transition: all 0.3s ease;
+        }
+
+        .contact-card:hover {
+            transform: translateY(-5px);
+            background: var(--hover-bg);
+        }
+
+        .contact-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .contact-card h3 {
+            font-size: 1.3em;
+            margin-bottom: 10px;
+        }
+
+        .contact-card a {
+            color: var(--text-primary);
+            text-decoration: none;
+            border-bottom: 2px solid var(--card-border);
+            transition: all 0.3s ease;
+        }
+
+        .contact-card a:hover {
+            border-bottom-color: var(--text-primary);
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px;
+            opacity: 0.9;
+            margin-top: 60px;
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2.5em; }
+            h2 { font-size: 2em; }
+            .section { padding: 30px 20px; }
+            .projects-grid, .skills-container, .testimonials-grid { grid-template-columns: 1fr; }
+            .play-snake-btn {
+                bottom: 15px;
+                right: 15px;
+                padding: 12px 20px;
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- THEME TOGGLE -->
+    <div class="theme-toggle" onclick="toggleTheme()">
+        <span id="themeIcon">🌙</span>
+        <span id="themeText">Tryb jasny</span>
+    </div>
+
+    <!-- SNAKE GAME -->
+    <button class="play-snake-btn" onclick="openSnakeGame()">
+        🐍 Zagraj w Snake
+    </button>
+
+    <div class="snake-game-container" id="snakeGame">
+        <div class="snake-score">Wynik: <span id="score">0</span></div>
+        <canvas id="snakeCanvas" width="600" height="600"></canvas>
+        <div class="snake-controls">
+            <div style="color: var(--text-primary);">Użyj strzałek lub WASD</div>
+            <button class="close-game" onclick="closeSnakeGame()">Zamknij</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- HEADER -->
+        <header>
+            <div class="logo">🔥</div>
+            <h1>nielopekk</h1>
+            <p class="subtitle"> Developer</p>
+            <p class="tagline">
+                Nielopekk - Adrian.
+            </p>
+            <div class="social-links">
+                <a href="https://github.com/nielopekk" target="_blank">🐙 GitHub</a>
+                <a href="https://discord.gg/omegacode" target="_blank">💬 Discord</a>
+                <a href="#contact">📧 Kontakt</a>
+            </div>
+        </header>
+
+        <!-- STATS -->
+        <div class="stats-section">
+            <div class="stat-card">
+                <span class="stat-number">1000</span>
+                <span class="stat-label"> zł+ zarobionych</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">4</span>
+                <span class="stat-label">Aktywnych projektów</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">2</span>
+                <span class="stat-label">Lata doświadczenia</span>
+            </div>
+        </div>
+
+        <!-- O MNIE -->
+        <section class="section">
+            <h2>👋 Kim jestem?</h2>
+            <div style="text-align: center; font-size: 1.2em; line-height: 2; max-width: 900px; margin: 0 auto;">
+                <p>
+                    Cześć! Jestem <strong>nielopekk</strong> – developerem z pasją do tworzenia 
+                    społeczności i rozwiązań open-source. Specjalizuję się w <strong>Java, Python, C#, SQL</strong> 
+                    oraz <strong>front-endzie</strong>.
+                </p>
+                <p style="margin-top: 20px;">
+                    Jestem współwłaścicielem <strong>Omega Code</strong> – rozwijającego się projektu code.
+                </p>
+                <p style="margin-top: 20px;">
+                    Wykonuję zamówienia dla ludzi zainteresowanych, potrzebujących danej rzeczy w danej dziedzinie
+                    robię to z pasją, staram się robić to jak najlepiej potrafię.
+                </p>
+            </div>
+        </section>
+
+        <!-- PROJEKTY -->
+        <section class="section">
+            <h2>🚀 Najważniejsze projekty</h2>
+            <div class="projects-grid">
+                <div class="project-card">
+                    <div class="project-header">
+                        <span class="project-icon">🌐</span>
+                        <span class="project-badge">⭐ CODE</span>
+                    </div>
+                    <h3>Omega Code Community</h3>
+                    <p>
+                        Największa polska społeczność developerów na Discord. Oferujemy code review, 
+                        wspólne projekty, webinary i networking z profesjonalistami z branży IT.
+                    </p>
+                    <div class="project-stats">
+                        <span class="project-stat">👥 100+ członków</span>
+                        <span class="project-stat">💬 5+ legitek</span>
+                        <span class="project-stat">🎯 Dojebany team</span>
+                    </div>
+                    <a href="https://discord.gg/omegacode" target="_blank" class="project-link">
+                        Dołącz do społeczności →
+                    </a>
+                </div>
+                
+                <div class="project-card">
+                    <div class="project-header">
+                        <span class="project-icon">🤖</span>
+                        <span class="project-badge">🔥 BOT</span>
+                    </div>
+                    <h3>Publiczny bot Discord WIP</h3>
+                    <p>
+                        Bot wprowadzający powiew świeżości na rynek botów platformy Discord
+                    </p>
+                    <div class="project-stats">
+                        <span class="project-stat">⭐ ??.??.2026</span>
+                        <span class="project-stat">🔀 ?? aktywnych serwerów</span>
+                        <span class="project-stat">🐍 Python</span>
+                    </div>
+                    <a href="https://github.com/nielopekk" target="_blank" class="project-link">
+                        Zobacz na GitHub →
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- UMIEJĘTNOŚCI -->
+        <section class="section">
+            <h2>💻 Stack technologiczny</h2>
+            <div class="skills-container">
+                <div class="skill-card">
+                    <div class="skill-header">
+                        <span class="skill-icon">🎨</span>
+                        <h3>Front-end</h3>
+                    </div>
+                    <div class="skill-bar-container">
+                        <div class="skill-name"><span>HTML/CSS</span><span>85%</span></div>
+                        <div class="skill-bar"><div class="skill-progress" data-width="85"></div></div>
+                    </div>
+                    <div class="skill-bar-container">
+                        <div class="skill-name"><span>JavaScript</span><span>80%</span></div>
+                        <div class="skill-bar"><div class="skill-progress" data-width="80"></div></div>
+                    </div>
+                    <div class="skill-bar-container">
+                        <div class="skill-name"><span>React.js</span><span>75%</span></div>
+                        <div class="skill-bar"><div class="skill-progress" data-width="75"></div></div>
+                    </div>
+                </div>
+
+                <div class="skill-card">
+                    <div class="skill-header">
+                        <span class="skill-icon">☕</span>
+                        <h3>Java</h3>
+                    </div>
+                    <div class="skill-bar-container">
+                        <div class="skill-name"><span>Core Java</span><span>70%</span></div>
+                        <div class="skill-bar"><div class="skill-progress" data-width="70"></div></div>
+                    </div>
+                    <div class="skill-bar-container">
+                        <div class="skill-name"><span>Spring Boot</span><span>65%</span></div>
+                        <div class="skill-bar"><div class="skill-progress" data-width="65"></div></div>
+                    </div>
+                    <div class="skill-bar-container">
+                        <div class="skill-name"><span>REST APIs</span><span>75%</span></div>
+                        <div class="skill-bar"><div class="skill-progress" data-width="75"></div></div>
+                    </div>
+                </div>
+
+                <div class="skill-card">
+                    <div class="skill-header">
+                        <span class="skill-icon">🐍</span>
+                        <h3>Python</h3>
+                    </div>
+                    <div class="skill-bar-container">
+                        <div class="skill-name"><span>Django</span><span>80%</span></div>
+                        <div class="skill-bar"><div class="skill-progress" data-width="80"></div></div>
+                    </div>
+                    <div class="skill-bar-container">
+                        <div class="skill-name"><span>Discord.py</span><span>90%</span></div>
+                        <div class="skill-bar"><div class="skill-progress" data-width="90"></div></div>
+                    </div>
+                    <div class="skill-bar-container">
+                        <div class="skill-name"><span>Data Analysis</span><span>70%</span></div>
+                        <div class="skill-bar"><div class="skill-progress" data-width="70"></div></div>
+                    </div>
+                </div>
+
+                <div class="skill-card">
+                    <div class="skill-header">
+                        <span class="skill-icon">💎</span>
+                        <h3>C#</h3>
+                    </div>
+                    <div class="skill-bar-container">
+                        <div class="skill-name"><span>.NET Core</span><span>65%</span></div>
+                        <div class="skill-bar"><div class="skill-progress" data-width="65"></div></div>
+                    </div>
+                    <div class="skill-bar-container">
+                        <div class="skill-name"><span>ASP.NET</span><span>60%</span></div>
+                        <div class="skill-bar"><div class="skill-progress" data-width="60"></div></div>
+                    </div>
+                    <div class="skill-bar-container">
+                        <div class="skill-name"><span>Unity</span><span>55%</span></div>
+                        <div class="skill-bar"><div class="skill-progress" data-width="55"></div></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- OPINIE -->
+        <section class="section">
+            <h2>💬 Co mówią o mnie</h2>
+            <div class="testimonials-grid">
+                <div class="testimonial-card">
+                    <div class="quote-icon">"</div>
+                    <p class="testimonial-text">
+                        "Dobry chłopak pomaga ludziom przy hostingu, widać że chce i umie"
+                    </p>
+                    <div class="testimonial-author">
+                        <span class="author-avatar">🛠️</span>
+                        <div class="author-info">
+                            <div class="author-name">Dixso</div>
+                            <div class="author-role">CEO @ epichost.pl</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="testimonial-card">
+                    <div class="quote-icon">"</div>
+                    <p class="testimonial-text">
+                        "Współpracowałem z nim 2 lata nie zawiodłem się ukończyliśmy razem wiele projektów dla innych jak i dla siebie"
+                    </p>
+                    <div class="testimonial-author">
+                        <span class="author-avatar">🧭</span>
+                        <div class="author-info">
+                            <div class="author-name">kaczmar9</div>
+                            <div class="author-role">CEO @ Pixel line</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA -->
+        <div class="cta-section">
+            <h2 class="cta-title">Zbudujmy coś wspólnie! 🚀</h2>
+            <p style="font-size: 1.2em; margin: 20px 0; opacity: 0.95;">
+                Szukasz developera do projektu? Chcesz dołączyć do społeczności? 
+                A może po prostu potrzebujesz pomocy z serwerem, botem lub grafikami?
+            </p>
+            <div class="cta-buttons">
+                <a href="#contact" class="cta-button primary">Skontaktuj się</a>
+                <a href="https://discord.gg/omegacode" target="_blank" class="cta-button">Dołącz do Discord</a>
+            </div>
+        </div>
+
+        <!-- KONTAKT -->
+        <section class="section" id="contact">
+            <h2>📬 Skontaktuj się ze mną</h2>
+            <div class="contact-grid">
+                <div class="contact-card">
+                    <span class="contact-icon">📧</span>
+                    <h3>Email</h3>
+                    <p><a href="mailto:nielopekk.kontakt@gmail.com">nielopekk.kontakt@gmail.com</a></p>
+                </div>
+                <div class="contact-card">
+                    <span class="contact-icon">💼</span>
+                    <h3>GitHub</h3>
+                    <p><a href="https://github.com/nielopekk" target="_blank">github.com/nielopekk</a></p>
+                </div>
+                <div class="contact-card">
+                    <span class="contact-icon">💬</span>
+                    <h3>Discord</h3>
+                    <p><a href="https://discord.com/users/nielopekk" target="_blank">nielopekk.</a></p>
+                </div>
+                <div class="contact-card">
+                    <span class="contact-icon">🐦</span>
+                    <h3>Twitter/X</h3>
+                    <p><a href="https://twitter.com/nielopekk" target="_blank">@nielopekk</a></p>
+                </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer>
+            <p style="font-size: 1.2em; margin-bottom: 15px;">
+                🔥 Made with passion by <strong>nielopekk</strong>
+            </p>
+            <p style="opacity: 0.8; margin: 10px 0;">
+                © 2025 nielopekk. All rights reserved.
+            </p>
+            <p style="opacity: 0.7; font-size: 0.95em;">
+                Hosted on GitHub Pages ❤️
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // THEME TOGGLE
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            
+            html.setAttribute('data-theme', newTheme);
+            
+            const themeIcon = document.getElementById('themeIcon');
+            const themeText = document.getElementById('themeText');
+            
+            if (newTheme === 'light') {
+                themeIcon.textContent = '☀️';
+                themeText.textContent = 'Tryb ciemny';
+            } else {
+                themeIcon.textContent = '🌙';
+                themeText.textContent = 'Tryb jasny';
+            }
+            
+            localStorage.setItem('theme', newTheme);
+        }
+
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        if (savedTheme === 'light') {
+            document.documentElement.setAttribute('data-theme', 'light');
+            document.getElementById('themeIcon').textContent = '☀️';
+            document.getElementById('themeText').textContent = 'Tryb ciemny';
+        }
+
+        // SNAKE GAME
+        let snake, direction, food, score, gameLoop, gameRunning;
+        const canvas = document.getElementById('snakeCanvas');
+        const ctx = canvas.getContext('2d');
+        const gridSize = 30;
+        const tileCount = canvas.width / gridSize;
+
+        const programmingIcons = ['☕', '🐍', '💎', '🎨', '⚛️', '🗄️', '🔧', '🚀'];
+
+        function openSnakeGame() {
+            document.getElementById('snakeGame').classList.add('active');
+            initGame();
+            startGame();
+        }
+
+        function closeSnakeGame() {
+            document.getElementById('snakeGame').classList.remove('active');
+            gameRunning = false;
+            if (gameLoop) clearInterval(gameLoop);
+        }
+
+        function initGame() {
+            snake = [{x: 10, y: 10}];
+            direction = {x: 1, y: 0};
+            food = {
+                x: Math.floor(Math.random() * tileCount),
+                y: Math.floor(Math.random() * tileCount),
+                icon: programmingIcons[Math.floor(Math.random() * programmingIcons.length)]
+            };
+            score = 0;
+            document.getElementById('score').textContent = score;
+            gameRunning = true;
+        }
+
+        function startGame() {
+            if (gameLoop) clearInterval(gameLoop);
+            gameLoop = setInterval(gameStep, 100);
+        }
+
+        function gameStep() {
+            if (!gameRunning) return;
+
+            // Move snake
+            const head = {
+                x: snake[0].x + direction.x,
+                y: snake[0].y + direction.y
+            };
+
+            // Check collision with walls
+            if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
+                gameOver();
+                return;
+            }
+
+            // Check collision with self
+            for (let segment of snake) {
+                if (head.x === segment.x && head.y === segment.y) {
+                    gameOver();
+                    return;
+                }
+            }
+
+            snake.unshift(head);
+
+            // Check if food is eaten
+            if (head.x === food.x && head.y === food.y) {
+                score++;
+                document.getElementById('score').textContent = score;
+                food = {
+                    x: Math.floor(Math.random() * tileCount),
+                    y: Math.floor(Math.random() * tileCount),
+                    icon: programmingIcons[Math.floor(Math.random() * programmingIcons.length)]
+                };
+            } else {
+                snake.pop();
+            }
+
+            draw();
+        }
+
+        function draw() {
+            // Clear canvas
+            ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--bg-secondary');
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw grid
+            ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--card-border');
+            ctx.lineWidth = 0.5;
+            for (let i = 0; i <= tileCount; i++) {
+                ctx.beginPath();
+                ctx.moveTo(i * gridSize, 0);
+                ctx.lineTo(i * gridSize, canvas.height);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(0, i * gridSize);
+                ctx.lineTo(canvas.width, i * gridSize);
+                ctx.stroke();
+            }
+
+            // Draw snake
+            ctx.fillStyle = '#667eea';
+            for (let i = 0; i < snake.length; i++) {
+                const segment = snake[i];
+                const gradient = ctx.createLinearGradient(
+                    segment.x * gridSize, 
+                    segment.y * gridSize,
+                    (segment.x + 1) * gridSize,
+                    (segment.y + 1) * gridSize
+                );
+                gradient.addColorStop(0, '#667eea');
+                gradient.addColorStop(1, '#764ba2');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(
+                    segment.x * gridSize + 2,
+                    segment.y * gridSize + 2,
+                    gridSize - 4,
+                    gridSize - 4
+                );
+            }
+
+            // Draw food (programming icon)
+            ctx.font = `${gridSize - 8}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(
+                food.icon,
+                food.x * gridSize + gridSize / 2,
+                food.y * gridSize + gridSize / 2
+            );
+        }
+
+        function gameOver() {
+            gameRunning = false;
+            clearInterval(gameLoop);
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#fff';
+            ctx.font = '48px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Game Over!', canvas.width / 2, canvas.height / 2 - 30);
+            ctx.font = '24px Arial';
+            ctx.fillText(`Wynik: ${score}`, canvas.width / 2, canvas.height / 2 + 20);
+            ctx.fillText('Kliknij "Zamknij" aby spróbować ponownie', canvas.width / 2, canvas.height / 2 + 60);
+        }
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (!gameRunning) return;
+            
+            switch(e.key) {
+                case 'ArrowUp':
+                case 'w':
+                case 'W':
+                    if (direction.y === 0) direction = {x: 0, y: -1};
+                    break;
+                case 'ArrowDown':
+                case 's':
+                case 'S':
+                    if (direction.y === 0) direction = {x: 0, y: 1};
+                    break;
+                case 'ArrowLeft':
+                case 'a':
+                case 'A':
+                    if (direction.x === 0) direction = {x: -1, y: 0};
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                case 'D':
+                    if (direction.x === 0) direction = {x: 1, y: 0};
+                    break;
+            }
+        });
+
+        // STATS ANIMATION
+        document.addEventListener('DOMContentLoaded', function() {
+            const observerOptions = {
+                threshold: 0.5
+            };
+
+            const statsObserver = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const statNumbers = entry.target.querySelectorAll('.stat-number');
+                        statNumbers.forEach(stat => {
+                            const finalNumber = stat.textContent;
+                            const number = parseInt(finalNumber.replace(/\D/g, ''));
+                            const suffix = finalNumber.replace(/[0-9]/g, '');
+                            
+                            let current = 0;
+                            const increment = number / 50;
+                            const timer = setInterval(() => {
+                                current += increment;
+                                if (current >= number) {
+                                    stat.textContent = number + suffix;
+                                    clearInterval(timer);
+                                } else {
+                                    stat.textContent = Math.floor(current) + suffix;
+                                }
+                            }, 30);
+                        });
+                        statsObserver.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+
+            // SKILL BARS ANIMATION
+            const skillsObserver = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const progressBars = entry.target.querySelectorAll('.skill-progress');
+                        progressBars.forEach(bar => {
+                            const width = bar.getAttribute('data-width');
+                            setTimeout(() => {
+                                bar.style.width = width + '%';
+                            }, 100);
+                        });
+                        skillsObserver.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+
+            const statsSection = document.querySelector('.stats-section');
+            if (statsSection) {
+                statsObserver.observe(statsSection);
+            }
+
+            const skillCards = document.querySelectorAll('.skill-card');
+            skillCards.forEach(card => {
+                skillsObserver.observe(card);
+            });
+
+            // Smooth scroll
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    const href = this.getAttribute('href');
+                    if (href !== '#' && href !== '#!') {
+                        e.preventDefault();
+                        const target = document.querySelector(href);
+                        if (target) {
+                            target.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'start'
+                            });
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
